@@ -652,7 +652,6 @@ def train(sess, model,
 def myrelu(features):
     return tf.maximum(features, 0.0)
 
-
 def parseArgs():
     # get line from config file
     args = sys.argv
