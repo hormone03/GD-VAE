@@ -91,7 +91,8 @@ class  DVAE(object):
             secondTerm = tf.reshape(secondTerm, (batch_size, 1))
             secondTerm = tf.digamma(self.alpha) - tf.digamma(self.beta) - secondTerm
             secondTerm = tf.reduce_sum(tf.multiply(alphaParamsDiff, secondTerm), axis=1)
-            thirdTerm = tf.reduce_sum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
+            #thirdTerm = tf.reduce_sum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
+            thirdTerm = tf.cumsum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
             thirdTerm = tf.reshape(thirdTerm, (batch_size, 1))
             v1 = tf.concat([self.beta[:, :-1] - self.alpha[:, 1:] - self.beta[:, 1:], self.beta[:, -1:] - 1], axis=-1)
             v2 = tf.concat([self.prior_beta[:, :-1] - self.prior_alpha[:, 1:] - self.prior_beta[:, 1:],
