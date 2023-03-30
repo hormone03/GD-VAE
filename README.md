@@ -5,4 +5,4 @@ This reposiory contains implementation of generalized Dirichlet variational auto
 ![schematic diagram](screeshot.png)
 See discussion in the [paper in review]()
 
-Documentation and development are still in progress...
+Documentation is in progress... TO BE UPDATED SOON!
