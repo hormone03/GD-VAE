@@ -3,5 +3,8 @@ This repository contains the implementation of [A topic modeling and image class
 
 
 ![schematic diagram](image_model_arch.png)
-See discussion in the [paper in review]()
 
+### DATA: 
+We evaluate GD-VAE and the baseline models on three data sets popularly used in topic modeling [20news, KOS, and NIPS], and validate the models' capacities on two popular image data sets [MNIST fashion and digits].
+
+### Usage: 
