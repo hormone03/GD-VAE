@@ -11,4 +11,3 @@ We evaluate GDVAE and the baseline models on three data sets popularly used in t
 ## Running the textScripts:
 python GDVAE.py 2
 ## Running the imageScripts:
-
