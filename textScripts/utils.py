@@ -12,7 +12,7 @@ from collections import Counter
 import json
 
 # for all datasets except 20news
-def data_set__(url):
+def data_set(url):
   data_te = np.load(url, allow_pickle=True, encoding='latin1')
   dataTEST = []
   count = []
@@ -25,7 +25,7 @@ def data_set__(url):
   return dataTEST, count
 
 #specifically for 20news
-def data_set(data_url):
+def data_set__(data_url):
   data = []
   word_count = []
   fin = open(data_url)
@@ -249,8 +249,79 @@ def topic_coherence(dataset,beta, feature_names, n_top_words=10):
   return coherence_sum/float(coherence_count),topic_coherence_sum/float(len(beta))
 
 
-def Redundancy(input_data: pd.Series, n: int = 10):
+def get_topics(beta, n_top_words=10):
+    topics = []
+    for i in range(len(beta)):
+      top_words = [j
+              for j in beta[i].argsort()[:-n_top_words - 1:-1]]
+      topics.append(top_words)
+    return topics
     
+def Redundancy(beta, n=10):
+    """
+    Compute topic redundancy score from 
+    https://jmlr.csail.mit.edu/papers/volume20/18-569/18-569.pdf
+    """
+    topics = get_topics(beta, n_top_words=10)
+    
+    tr_results = []
+    k = len(topics)
+    for i, topics_i in enumerate(topics): #enumarate guves index and key in dict
+        w_counts = 0
+        for w in topics_i[:n]:
+            w_counts += np.sum([w in topics_j[:n] for j, topics_j in enumerate(topics) if j != i]) # count(k, l)
+        tr_results.append((1 / (k - 1)) * w_counts)
+    return sum(tr_results)/len(tr_results)
+
+
+def uniqueness(beta, n=10):
+    """
+    Topic uniqueness measure from
+    https://www.aclweb.org/anthology/P19-1640.pdf
+    """
+    topics = get_topics(beta, n_top_words=10)
+    tu_results = []
+    for topics_i in topics:
+        w_counts = 0
+        for w in topics_i[:n]:
+            w_counts += 1 / np.sum([w in topics_j[:n] for topics_j in topics]) # count(k, l)
+        tu_results.append((1 / n) * w_counts)
+    return sum(tu_results)/len(tu_results)
+
+def diversity(beta, n=25):
+    """
+    Compute topic diversity from 
+    https://doi.org/10.1162/tacl_a_00325
+    """
+    topics = get_topics(beta, n_top_words=25)
+    words = [w for topic in topics for w in topic[:n]]
+    return len(set(words)) / len(words)
+
+
+
+def overlap(beta, n=10):
+    """
+    Calculate topic overlap (number of unique topic pairs sharing words)
+    """
+    topics = get_topics(beta, n_top_words=10)
+    k = len(topics)
+    overlaps = np.zeros((k, k), dtype=float)
+    common_terms = np.zeros((k, k), dtype=float)
+    words = Counter([w for topic in topics for w in topic[:n]])
+
+    for i, t_i in enumerate(topics):
+        for j, t_j in enumerate(topics[i+1:], start=i+1):
+            if i != j:
+                overlap_ij = set(t_i[:n]) & set(t_j[:n])
+                overlaps[i, j] = len(overlap_ij) 
+                common_terms[i, j] = sum(words[w] for w in overlap_ij)
+    
+    return overlaps.sum()
+
+
+
+def Redundancy___(input_data: pd.Series, n: int = 10):
+    print(input_data)
     try:
         assert 5 <= n <= 15
         
@@ -261,12 +332,19 @@ def Redundancy(input_data: pd.Series, n: int = 10):
         raise
         
     ngram = [0]*len(input_data)
+    #ngram = [len(a) * [0] for a in input_data]
+    #ngram = [0]*(np.shape(input_data))
     for i in tqdm(range(len(input_data)), desc = 'Get the Redundancy'):
         
         ngram[i] = [0]*len(input_data[i])
         for j in range(len(input_data[i])):
             if input_data[i] !='':
-                ngram[i][j] = list(nltk.ngrams(input_data[i][j].split(),10))
+                print("===>" * 4)
+                print(input_data[i])
+                print("===>" * 5)
+                print(input_data[i][j])
+                print("===>" * 6)
+                ngram[i][j] = list(nltk.ngrams(input_data([i][j]).split(),10))
     
     list_ngrams_per_doc = [list(chain(*ngram[i])) for i in range(len(ngram))]
     
