@@ -91,8 +91,8 @@ class  DVAE(object):
             secondTerm = tf.reshape(secondTerm, (batch_size, 1))
             secondTerm = tf.digamma(self.alpha) - tf.digamma(self.beta) - secondTerm
             secondTerm = tf.reduce_sum(tf.multiply(alphaParamsDiff, secondTerm), axis=1)
-            #thirdTerm = tf.reduce_sum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
-            thirdTerm = tf.cumsum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
+            thirdTerm = tf.reduce_sum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
+            #thirdTerm = tf.cumsum((tf.digamma(decoderParamSum) - tf.digamma(self.beta)), axis=1)
             thirdTerm = tf.reshape(thirdTerm, (batch_size, 1))
             v1 = tf.concat([self.beta[:, :-1] - self.alpha[:, 1:] - self.beta[:, 1:], self.beta[:, -1:] - 1], axis=-1)
             v2 = tf.concat([self.prior_beta[:, :-1] - self.prior_alpha[:, 1:] - self.prior_beta[:, 1:],
@@ -636,18 +636,43 @@ def train(sess, model,
             print_kld_test = kld_sum_test / len(test_batches)
             print_ana_ppx = np.exp(ana_loss_sum / word_count)
             print_ana_kld_test = ana_kld_sum_test / len(train_batches)
+            print_redundancy = utils.Redundancy(phi, 10)
+            print_uniqueness = utils.uniqueness(phi, 10)
+            print_diversity = utils.diversity(phi, 10)
+            print_overlap = utils.overlap(phi,10)
             print('| Epoch test: {:d} |'.format(epoch + 1),
                   '| Perplexity: {:.9f}'.format(print_ppx),
                   '| Per doc ppx: {:.5f}'.format(print_ppx_perdoc),
                   '| KLD: {:.5}'.format(print_kld_test),
                   '| Loss: {:.5}'.format(print_loss),
                   '| ppx anal.: {:.5f}'.format(print_ana_ppx),
-                  '|KLD anal.: {:.5f}'.format(print_ana_kld_test))
+                  '|KLD anal.: {:.5f}'.format(print_ana_kld_test),
+                  '| Redundancy: {:.9f}'.format(print_redundancy),
+                  '| Uniqueness: {:.9f}'.format(print_uniqueness),
+                  '| Diversity: {:.9f}'.format(print_diversity),
+                  '| Overlap: {:.9f}'.format(print_overlap))
+            
             if stopped:
+##############################################################################################
                 # only do it once in the end
-                print('calculate topic coherence (might take a few minutes)')
-                coherence = utils.topic_coherence(test_set, phi, lexicon)
-                print('topic coherence', str(coherence))
+                print('calculate topic redundancy')
+                redundancy = utils.Redundancy(phi, 10)
+                print('topic redundancy', str(redundancy))
+
+                print('calculate topic Uniqueness')
+                Uniqueness = utils.uniqueness(phi, 10)
+                print('topic Uniqueness', str(Uniqueness))
+
+                print('calculate topic Diversity')
+                Diversity = utils.diversity(phi, 25)
+                print('topic Diversity', str(Diversity))
+
+                print('calculate topic Overlap')
+                Overlap = utils.overlap(phi, 10)
+                print('topic Overlap', str(Overlap))
+                #print('calculate topic coherence (might take a few minutes)')
+                #coherence = utils.topic_coherence(test_set, phi, lexicon)
+                #print('topic coherence', str(coherence))
 
 
 def myrelu(features):
@@ -678,7 +703,7 @@ def parseArgs():
     argparser.add_argument('--n_sample', default=1, type=int)
     argparser.add_argument('--warm_up_period', default=100, type=int)
     argparser.add_argument('--nocorrection', action="store_true")
-    argparser.add_argument('--data_dir', default='data/20news', type=str)
+    argparser.add_argument('--data_dir', default='data/NIPS_data', type=str)
     return argparser.parse_args(argstring.split())
 
 
@@ -702,7 +727,7 @@ def main(argv=None):
     n_sample = args.n_sample
     n_topic = args.n_topic
     lexicon = []
-    vocab_path = os.path.join(args.data_dir, 'vocab.new')
+    vocab_path = os.path.join(args.data_dir, 'vocab.nips.txt')
     with open(vocab_path, 'r') as rf:
         for line in rf:
             word = line.split()[0]
@@ -726,8 +751,8 @@ def main(argv=None):
     sess = tf.Session()
     init = tf.global_variables_initializer()
     result = sess.run(init)
-    train_url = os.path.join(args.data_dir, 'train.feat')
-    test_url = os.path.join(args.data_dir, 'test.feat')
+    train_url = os.path.join(args.data_dir, 'trainNIPS.txt.npy')
+    test_url = os.path.join(args.data_dir, 'testNIPS.txt.npy')
 
     train(sess, dvae, train_url, test_url, FLAGS.batch_size, vocab_size, analytical, lexicon=lexicon,
           result_file=None, B=B,
