@@ -10,8 +10,7 @@ We evaluate GDVAE and the baseline models on three data sets popularly used in t
 ### Usage:
 ## 
 ## Running the textScripts:
-Create a virtual environment, install the requirements.txt in the textScripts directory and run:
-
+Set up a virtual environment, install the packages listed in the `requirements.txt` file located in the "Scripts" directory, and execute the step below:
 python GDVAE.py 2
 ## Running the imageScripts:
 python GDVAE.py
