@@ -7,8 +7,7 @@ This repository contains the implementation of [A topic modeling and image class
 ### DATA: 
 We evaluate GDVAE and the baseline models on three data sets popularly used in topic modeling [20news, KOS, and NIPS], and validate the models' capacities on two popular image data sets [MNIST fashion and digits].
 
-### Usage:
-## 
+
 ## Running the textScripts:
 Set up a virtual environment, install the packages listed in the `requirements.txt` file located in the "textScripts" directory, and execute the step below:
 
